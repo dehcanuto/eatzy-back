@@ -5,11 +5,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { EstoqueModule } from './estoque/estoque.module';
+import { MesasModule } from './mesas/mesas.module';
+import { FinanceiroModule } from './financeiro/financeiro.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { CardapioModule } from './cardapio/cardapio.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: '.env',
+      envFilePath:
+        process.env.NODE_ENV === 'development' ? '.env.develop' : '.env',
       isGlobal: true,
     }),
     TypeOrmModule.forRoot({
@@ -25,6 +30,10 @@ import { EstoqueModule } from './estoque/estoque.module';
     AuthModule,
     UsersModule,
     EstoqueModule,
+    MesasModule,
+    FinanceiroModule,
+    DashboardModule,
+    CardapioModule,
   ],
 })
 export class AppModule {}
