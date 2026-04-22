@@ -42,8 +42,11 @@ export class EstoqueService {
     return 'normal';
   }
 
-  async findAll(filtros?: FiltrosEstoque): Promise<Produto[]> {
-    const where: FindOptionsWhere<Produto> = {};
+  async findAll(
+    restauranteId: number,
+    filtros?: FiltrosEstoque,
+  ): Promise<Produto[]> {
+    const where: FindOptionsWhere<Produto> = { restauranteId };
 
     if (filtros?.categoria && filtros.categoria !== 'todos') {
       where.categoria = filtros.categoria;
@@ -69,17 +72,22 @@ export class EstoqueService {
     });
   }
 
-  async findOne(id: number): Promise<Produto> {
-    const produto = await this.produtosRepository.findOne({ where: { id } });
+  async findOne(id: number, restauranteId: number): Promise<Produto> {
+    const produto = await this.produtosRepository.findOne({
+      where: { id, restauranteId },
+    });
     if (!produto) {
       throw new NotFoundException('Produto não encontrado');
     }
     return produto;
   }
 
-  async create(createProdutoDto: CreateProdutoDto): Promise<Produto> {
+  async create(
+    createProdutoDto: CreateProdutoDto,
+    restauranteId: number,
+  ): Promise<Produto> {
     const existing = await this.produtosRepository.findOne({
-      where: { nome: createProdutoDto.nome },
+      where: { nome: createProdutoDto.nome, restauranteId },
     });
     if (existing) {
       throw new ConflictException('Produto com este nome já existe');
@@ -92,6 +100,7 @@ export class EstoqueService {
 
     const produto = this.produtosRepository.create({
       ...createProdutoDto,
+      restauranteId,
       dataUltimaEntrada: new Date(createProdutoDto.dataUltimaEntrada),
       status,
     });
@@ -102,12 +111,13 @@ export class EstoqueService {
   async update(
     id: number,
     updateProdutoDto: UpdateProdutoDto,
+    restauranteId: number,
   ): Promise<Produto> {
-    const produto = await this.findOne(id);
+    const produto = await this.findOne(id, restauranteId);
 
     if (updateProdutoDto.nome && updateProdutoDto.nome !== produto.nome) {
       const existing = await this.produtosRepository.findOne({
-        where: { nome: updateProdutoDto.nome },
+        where: { nome: updateProdutoDto.nome, restauranteId },
       });
       if (existing) {
         throw new ConflictException('Produto com este nome já existe');
@@ -137,17 +147,19 @@ export class EstoqueService {
       );
     }
 
-    await this.produtosRepository.update(id, updateData);
-    return this.findOne(id);
+    await this.produtosRepository.update({ id, restauranteId }, updateData);
+    return this.findOne(id, restauranteId);
   }
 
-  async remove(id: number): Promise<void> {
-    const produto = await this.findOne(id);
+  async remove(id: number, restauranteId: number): Promise<void> {
+    const produto = await this.findOne(id, restauranteId);
     await this.produtosRepository.remove(produto);
   }
 
-  async getEstatisticas(): Promise<EstatisticasEstoque> {
-    const produtos = await this.produtosRepository.find();
+  async getEstatisticas(restauranteId: number): Promise<EstatisticasEstoque> {
+    const produtos = await this.produtosRepository.find({
+      where: { restauranteId },
+    });
 
     const total = produtos.length;
     const normal = produtos.filter((p) => p.status === 'normal').length;
@@ -161,10 +173,11 @@ export class EstoqueService {
     return { total, normal, baixo, critico, valorTotal };
   }
 
-  async getCategorias(): Promise<string[]> {
+  async getCategorias(restauranteId: number): Promise<string[]> {
     const categorias = await this.produtosRepository
       .createQueryBuilder('produto')
       .select('DISTINCT produto.categoria', 'categoria')
+      .where('produto.restauranteId = :restauranteId', { restauranteId })
       .orderBy('categoria', 'ASC')
       .getRawMany();
 

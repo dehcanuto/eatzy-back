@@ -21,6 +21,8 @@ import {
 } from '@nestjs/swagger';
 import { EstoqueService } from './estoque.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { TenantGuard } from '../auth/guards/tenant.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CreateProdutoDto } from './dto/create-produto.dto';
 import { UpdateProdutoDto } from './dto/update-produto.dto';
 import { ProdutoResponseDto } from './dto/produto-response.dto';
@@ -29,7 +31,7 @@ import { EstatisticasEstoque } from './estoque.service';
 
 @ApiTags('estoque')
 @Controller('estoque')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 @ApiBearerAuth()
 export class EstoqueController {
   constructor(private readonly estoqueService: EstoqueService) {}
@@ -57,11 +59,12 @@ export class EstoqueController {
     type: [ProdutoResponseDto],
   })
   async findAll(
+    @CurrentUser('restauranteId') restauranteId: number,
     @Query('categoria') categoria?: string,
     @Query('status') status?: string,
     @Query('search') search?: string,
   ): Promise<Produto[]> {
-    return this.estoqueService.findAll({ categoria, status, search });
+    return this.estoqueService.findAll(restauranteId, { categoria, status, search });
   }
 
   @Get('estatisticas')
@@ -70,8 +73,10 @@ export class EstoqueController {
     status: 200,
     description: 'Estatísticas retornadas com sucesso',
   })
-  async getEstatisticas(): Promise<EstatisticasEstoque> {
-    return this.estoqueService.getEstatisticas();
+  async getEstatisticas(
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<EstatisticasEstoque> {
+    return this.estoqueService.getEstatisticas(restauranteId);
   }
 
   @Get('categorias')
@@ -80,8 +85,10 @@ export class EstoqueController {
     status: 200,
     description: 'Lista de categorias retornada com sucesso',
   })
-  async getCategorias(): Promise<string[]> {
-    return this.estoqueService.getCategorias();
+  async getCategorias(
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<string[]> {
+    return this.estoqueService.getCategorias(restauranteId);
   }
 
   @Get(':id')
@@ -92,8 +99,11 @@ export class EstoqueController {
     type: ProdutoResponseDto,
   })
   @ApiResponse({ status: 404, description: 'Produto não encontrado' })
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Produto> {
-    return this.estoqueService.findOne(id);
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<Produto> {
+    return this.estoqueService.findOne(id, restauranteId);
   }
 
   @Post()
@@ -105,8 +115,11 @@ export class EstoqueController {
     type: ProdutoResponseDto,
   })
   @ApiResponse({ status: 409, description: 'Produto já existe' })
-  async create(@Body() createProdutoDto: CreateProdutoDto): Promise<Produto> {
-    return this.estoqueService.create(createProdutoDto);
+  async create(
+    @Body() createProdutoDto: CreateProdutoDto,
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<Produto> {
+    return this.estoqueService.create(createProdutoDto, restauranteId);
   }
 
   @Patch(':id')
@@ -121,8 +134,9 @@ export class EstoqueController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateProdutoDto: UpdateProdutoDto,
+    @CurrentUser('restauranteId') restauranteId: number,
   ): Promise<Produto> {
-    return this.estoqueService.update(id, updateProdutoDto);
+    return this.estoqueService.update(id, updateProdutoDto, restauranteId);
   }
 
   @Delete(':id')
@@ -130,7 +144,10 @@ export class EstoqueController {
   @ApiOperation({ summary: 'Remover produto' })
   @ApiResponse({ status: 204, description: 'Produto removido com sucesso' })
   @ApiResponse({ status: 404, description: 'Produto não encontrado' })
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    return this.estoqueService.remove(id);
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<void> {
+    return this.estoqueService.remove(id, restauranteId);
   }
 }
