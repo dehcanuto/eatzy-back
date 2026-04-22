@@ -35,23 +35,30 @@ export class FinanceiroService {
   ) {}
 
   // Contas a Pagar
-  async findAllContas(): Promise<ContaPagar[]> {
+  async findAllContas(restauranteId: number): Promise<ContaPagar[]> {
     return this.contasPagarRepository.find({
+      where: { restauranteId },
       order: { dataVencimento: 'ASC' },
     });
   }
 
-  async findOneConta(id: number): Promise<ContaPagar> {
-    const conta = await this.contasPagarRepository.findOne({ where: { id } });
+  async findOneConta(id: number, restauranteId: number): Promise<ContaPagar> {
+    const conta = await this.contasPagarRepository.findOne({
+      where: { id, restauranteId },
+    });
     if (!conta) {
       throw new NotFoundException('Conta não encontrada');
     }
     return conta;
   }
 
-  async createConta(createContaDto: CreateContaPagarDto): Promise<ContaPagar> {
+  async createConta(
+    createContaDto: CreateContaPagarDto,
+    restauranteId: number,
+  ): Promise<ContaPagar> {
     const newConta = this.contasPagarRepository.create({
       ...createContaDto,
+      restauranteId,
       dataVencimento: new Date(createContaDto.dataVencimento),
       dataPagamento: createContaDto.dataPagamento
         ? new Date(createContaDto.dataPagamento)
@@ -63,8 +70,9 @@ export class FinanceiroService {
   async updateConta(
     id: number,
     updateContaDto: UpdateContaPagarDto,
+    restauranteId: number,
   ): Promise<ContaPagar> {
-    await this.findOneConta(id);
+    await this.findOneConta(id, restauranteId);
 
     const updateData: Partial<ContaPagar> = {
       descricao: updateContaDto.descricao,
@@ -86,33 +94,40 @@ export class FinanceiroService {
         : undefined;
     }
 
-    await this.contasPagarRepository.update(id, updateData);
-    return this.findOneConta(id);
+    await this.contasPagarRepository.update({ id, restauranteId }, updateData);
+    return this.findOneConta(id, restauranteId);
   }
 
-  async removeConta(id: number): Promise<void> {
-    const contaToRemove = await this.findOneConta(id);
+  async removeConta(id: number, restauranteId: number): Promise<void> {
+    const contaToRemove = await this.findOneConta(id, restauranteId);
     await this.contasPagarRepository.remove(contaToRemove);
   }
 
   // Fluxo de Caixa
-  async findAllFluxo(): Promise<FluxoCaixa[]> {
+  async findAllFluxo(restauranteId: number): Promise<FluxoCaixa[]> {
     return this.fluxoCaixaRepository.find({
+      where: { restauranteId },
       order: { data: 'DESC' },
     });
   }
 
-  async findOneFluxo(id: number): Promise<FluxoCaixa> {
-    const fluxo = await this.fluxoCaixaRepository.findOne({ where: { id } });
+  async findOneFluxo(id: number, restauranteId: number): Promise<FluxoCaixa> {
+    const fluxo = await this.fluxoCaixaRepository.findOne({
+      where: { id, restauranteId },
+    });
     if (!fluxo) {
       throw new NotFoundException('Registro de fluxo não encontrado');
     }
     return fluxo;
   }
 
-  async createFluxo(createFluxoDto: CreateFluxoCaixaDto): Promise<FluxoCaixa> {
+  async createFluxo(
+    createFluxoDto: CreateFluxoCaixaDto,
+    restauranteId: number,
+  ): Promise<FluxoCaixa> {
     const fluxo = this.fluxoCaixaRepository.create({
       ...createFluxoDto,
+      restauranteId,
       data: new Date(createFluxoDto.data),
     });
     return this.fluxoCaixaRepository.save(fluxo);
@@ -121,8 +136,9 @@ export class FinanceiroService {
   async updateFluxo(
     id: number,
     updateFluxoDto: UpdateFluxoCaixaDto,
+    restauranteId: number,
   ): Promise<FluxoCaixa> {
-    await this.findOneFluxo(id);
+    await this.findOneFluxo(id, restauranteId);
 
     const updateData: Partial<FluxoCaixa> = {
       descricao: updateFluxoDto.descricao,
@@ -137,18 +153,20 @@ export class FinanceiroService {
       updateData.data = new Date(updateFluxoDto.data);
     }
 
-    await this.fluxoCaixaRepository.update(id, updateData);
-    return this.findOneFluxo(id);
+    await this.fluxoCaixaRepository.update({ id, restauranteId }, updateData);
+    return this.findOneFluxo(id, restauranteId);
   }
 
-  async removeFluxo(id: number): Promise<void> {
-    const fluxo = await this.findOneFluxo(id);
+  async removeFluxo(id: number, restauranteId: number): Promise<void> {
+    const fluxo = await this.findOneFluxo(id, restauranteId);
     await this.fluxoCaixaRepository.remove(fluxo);
   }
 
   // Estatísticas
-  async getEstatisticasContas(): Promise<EstatisticasContas> {
-    const contas = await this.contasPagarRepository.find();
+  async getEstatisticasContas(restauranteId: number): Promise<EstatisticasContas> {
+    const contas = await this.contasPagarRepository.find({
+      where: { restauranteId },
+    });
 
     const total = contas.length;
     const pagas = contas.filter((c) => c.status === 'pago').length;
@@ -178,8 +196,10 @@ export class FinanceiroService {
     };
   }
 
-  async getEstatisticasFluxo(): Promise<EstatisticasFluxo> {
-    const fluxos = await this.fluxoCaixaRepository.find();
+  async getEstatisticasFluxo(restauranteId: number): Promise<EstatisticasFluxo> {
+    const fluxos = await this.fluxoCaixaRepository.find({
+      where: { restauranteId },
+    });
 
     const entradas = fluxos
       .filter((f) => f.tipo === 'entrada')
@@ -195,12 +215,13 @@ export class FinanceiroService {
     };
   }
 
-  async getContasAtrasadas(): Promise<ContaPagar[]> {
+  async getContasAtrasadas(restauranteId: number): Promise<ContaPagar[]> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     return this.contasPagarRepository.find({
       where: {
+        restauranteId,
         status: 'atrasado',
         dataVencimento: LessThan(today),
       },
@@ -209,7 +230,7 @@ export class FinanceiroService {
   }
 
   // Atualiza status de contas vencidas para atrasado
-  async atualizarStatusContasAtrasadas(): Promise<void> {
+  async atualizarStatusContasAtrasadas(restauranteId: number): Promise<void> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -217,7 +238,8 @@ export class FinanceiroService {
       .createQueryBuilder()
       .update(ContaPagar)
       .set({ status: 'atrasado' as ContaPagarStatus })
-      .where('data_vencimento < :today', { today })
+      .where('restaurante_id = :restauranteId', { restauranteId })
+      .andWhere('data_vencimento < :today', { today })
       .andWhere('status = :pendente', { pendente: 'pendente' })
       .execute();
   }

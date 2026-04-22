@@ -23,6 +23,8 @@ import {
   EstatisticasFluxo,
 } from './financeiro.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { TenantGuard } from '../auth/guards/tenant.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CreateContaPagarDto } from './dto/create-conta-pagar.dto';
 import { UpdateContaPagarDto } from './dto/update-conta-pagar.dto';
 import { CreateFluxoCaixaDto } from './dto/create-fluxo-caixa.dto';
@@ -32,7 +34,7 @@ import { FluxoCaixa } from '../entities/fluxo-caixa.entity';
 
 @ApiTags('financeiro')
 @Controller('financeiro')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 @ApiBearerAuth()
 export class FinanceiroController {
   constructor(private readonly financeiroService: FinanceiroService) {}
@@ -44,8 +46,10 @@ export class FinanceiroController {
     status: 200,
     description: 'Lista de contas retornada com sucesso',
   })
-  async findAllContas(): Promise<ContaPagar[]> {
-    return this.financeiroService.findAllContas();
+  async findAllContas(
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<ContaPagar[]> {
+    return this.financeiroService.findAllContas(restauranteId);
   }
 
   @Get('contas/estatisticas')
@@ -54,8 +58,10 @@ export class FinanceiroController {
     status: 200,
     description: 'Estatísticas retornadas com sucesso',
   })
-  async getEstatisticasContas(): Promise<EstatisticasContas> {
-    return this.financeiroService.getEstatisticasContas();
+  async getEstatisticasContas(
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<EstatisticasContas> {
+    return this.financeiroService.getEstatisticasContas(restauranteId);
   }
 
   @Get('contas/atrasadas')
@@ -64,8 +70,10 @@ export class FinanceiroController {
     status: 200,
     description: 'Lista de contas atrasadas retornada',
   })
-  async getContasAtrasadas(): Promise<ContaPagar[]> {
-    return this.financeiroService.getContasAtrasadas();
+  async getContasAtrasadas(
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<ContaPagar[]> {
+    return this.financeiroService.getContasAtrasadas(restauranteId);
   }
 
   @Get('contas/:id')
@@ -74,8 +82,9 @@ export class FinanceiroController {
   @ApiResponse({ status: 404, description: 'Conta não encontrada' })
   async findOneConta(
     @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('restauranteId') restauranteId: number,
   ): Promise<ContaPagar> {
-    return this.financeiroService.findOneConta(id);
+    return this.financeiroService.findOneConta(id, restauranteId);
   }
 
   @Post('contas')
@@ -87,8 +96,9 @@ export class FinanceiroController {
   })
   async createConta(
     @Body() createContaDto: CreateContaPagarDto,
+    @CurrentUser('restauranteId') restauranteId: number,
   ): Promise<ContaPagar> {
-    return this.financeiroService.createConta(createContaDto);
+    return this.financeiroService.createConta(createContaDto, restauranteId);
   }
 
   @Patch('contas/:id')
@@ -98,8 +108,9 @@ export class FinanceiroController {
   async updateConta(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateContaDto: UpdateContaPagarDto,
+    @CurrentUser('restauranteId') restauranteId: number,
   ): Promise<ContaPagar> {
-    return this.financeiroService.updateConta(id, updateContaDto);
+    return this.financeiroService.updateConta(id, updateContaDto, restauranteId);
   }
 
   @Delete('contas/:id')
@@ -107,8 +118,11 @@ export class FinanceiroController {
   @ApiOperation({ summary: 'Remover conta a pagar' })
   @ApiResponse({ status: 204, description: 'Conta removida com sucesso' })
   @ApiResponse({ status: 404, description: 'Conta não encontrada' })
-  async removeConta(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    return this.financeiroService.removeConta(id);
+  async removeConta(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<void> {
+    return this.financeiroService.removeConta(id, restauranteId);
   }
 
   // Fluxo de Caixa
@@ -118,8 +132,10 @@ export class FinanceiroController {
     status: 200,
     description: 'Lista de fluxo retornada com sucesso',
   })
-  async findAllFluxo(): Promise<FluxoCaixa[]> {
-    return this.financeiroService.findAllFluxo();
+  async findAllFluxo(
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<FluxoCaixa[]> {
+    return this.financeiroService.findAllFluxo(restauranteId);
   }
 
   @Get('fluxo/estatisticas')
@@ -128,8 +144,10 @@ export class FinanceiroController {
     status: 200,
     description: 'Estatísticas retornadas com sucesso',
   })
-  async getEstatisticasFluxo(): Promise<EstatisticasFluxo> {
-    return this.financeiroService.getEstatisticasFluxo();
+  async getEstatisticasFluxo(
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<EstatisticasFluxo> {
+    return this.financeiroService.getEstatisticasFluxo(restauranteId);
   }
 
   @Get('fluxo/:id')
@@ -138,8 +156,9 @@ export class FinanceiroController {
   @ApiResponse({ status: 404, description: 'Registro não encontrado' })
   async findOneFluxo(
     @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('restauranteId') restauranteId: number,
   ): Promise<FluxoCaixa> {
-    return this.financeiroService.findOneFluxo(id);
+    return this.financeiroService.findOneFluxo(id, restauranteId);
   }
 
   @Post('fluxo')
@@ -151,8 +170,9 @@ export class FinanceiroController {
   })
   async createFluxo(
     @Body() createFluxoDto: CreateFluxoCaixaDto,
+    @CurrentUser('restauranteId') restauranteId: number,
   ): Promise<FluxoCaixa> {
-    return this.financeiroService.createFluxo(createFluxoDto);
+    return this.financeiroService.createFluxo(createFluxoDto, restauranteId);
   }
 
   @Patch('fluxo/:id')
@@ -162,8 +182,9 @@ export class FinanceiroController {
   async updateFluxo(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateFluxoDto: UpdateFluxoCaixaDto,
+    @CurrentUser('restauranteId') restauranteId: number,
   ): Promise<FluxoCaixa> {
-    return this.financeiroService.updateFluxo(id, updateFluxoDto);
+    return this.financeiroService.updateFluxo(id, updateFluxoDto, restauranteId);
   }
 
   @Delete('fluxo/:id')
@@ -171,7 +192,10 @@ export class FinanceiroController {
   @ApiOperation({ summary: 'Remover registro de fluxo de caixa' })
   @ApiResponse({ status: 204, description: 'Registro removido com sucesso' })
   @ApiResponse({ status: 404, description: 'Registro não encontrado' })
-  async removeFluxo(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    return this.financeiroService.removeFluxo(id);
+  async removeFluxo(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<void> {
+    return this.financeiroService.removeFluxo(id, restauranteId);
   }
 }
