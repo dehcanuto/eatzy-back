@@ -6,7 +6,6 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
-  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -20,6 +19,9 @@ import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UserResponseDto } from './dto/user-response.dto';
+import { SelectRestauranteDto } from './dto/select-restaurante.dto';
+import { RestauranteUsuarioDto } from './dto/restaurante-usuario.dto';
+import { CurrentUser } from './decorators/current-user.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -62,7 +64,42 @@ export class AuthController {
     type: UserResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async me(@Req() req): Promise<UserResponseDto> {
-    return this.authService.me(req.user.userId);
+  async me(
+    @CurrentUser('userId') userId: number,
+  ): Promise<UserResponseDto> {
+    return this.authService.me(userId);
+  }
+
+  @Get('restaurantes')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Listar restaurantes do usuário' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de restaurantes do usuário',
+    type: [RestauranteUsuarioDto],
+  })
+  async getUserRestaurantes(
+    @CurrentUser('userId') userId: number,
+  ): Promise<RestauranteUsuarioDto[]> {
+    return this.authService.getUserRestaurantes(userId);
+  }
+
+  @Post('selecionar-restaurante')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Selecionar restaurante para acesso' })
+  @ApiResponse({
+    status: 200,
+    description: 'Restaurante selecionado com sucesso',
+    type: LoginResponseDto,
+  })
+  @ApiResponse({ status: 403, description: 'Acesso negado ao restaurante' })
+  async selectRestaurante(
+    @Body() selectDto: SelectRestauranteDto,
+    @CurrentUser('userId') userId: number,
+  ): Promise<LoginResponseDto> {
+    return this.authService.selectRestaurante(userId, selectDto.restauranteId);
   }
 }

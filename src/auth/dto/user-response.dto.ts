@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { RestauranteUsuarioDto } from './restaurante-usuario.dto';
 
 export class UserResponseDto {
   @ApiProperty({ example: 1 })
@@ -15,4 +16,7 @@ export class UserResponseDto {
 
   @ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
   updatedAt: Date;
+
+  @ApiProperty({ type: [RestauranteUsuarioDto] })
+  restaurantes: RestauranteUsuarioDto[];
 }
