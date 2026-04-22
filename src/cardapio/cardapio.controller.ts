@@ -19,6 +19,8 @@ import {
 } from '@nestjs/swagger';
 import { CardapioService } from './cardapio.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { TenantGuard } from '../auth/guards/tenant.guard';
+import { CurrentUser, CurrentUserData } from '../auth/decorators/current-user.decorator';
 import { CreateCardapioDto } from './dto/create-cardapio.dto';
 import { UpdateCardapioDto } from './dto/update-cardapio.dto';
 import { CardapioResponseDto } from './dto/cardapio-response.dto';
@@ -26,7 +28,7 @@ import { Cardapio } from '../entities/cardapio.entity';
 
 @ApiTags('cardapio')
 @Controller('cardapio')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 @ApiBearerAuth()
 export class CardapioController {
   constructor(private readonly cardapioService: CardapioService) {}
@@ -38,8 +40,10 @@ export class CardapioController {
     description: 'Lista de itens retornada com sucesso',
     type: [CardapioResponseDto],
   })
-  async findAll(): Promise<Cardapio[]> {
-    return this.cardapioService.findAll();
+  async findAll(
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<Cardapio[]> {
+    return this.cardapioService.findAll(restauranteId);
   }
 
   @Get('disponiveis')
@@ -49,8 +53,10 @@ export class CardapioController {
     description: 'Lista de itens disponíveis retornada com sucesso',
     type: [CardapioResponseDto],
   })
-  async findAllDisponiveis(): Promise<Cardapio[]> {
-    return this.cardapioService.findAllDisponiveis();
+  async findAllDisponiveis(
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<Cardapio[]> {
+    return this.cardapioService.findAllDisponiveis(restauranteId);
   }
 
   @Get(':id')
@@ -61,8 +67,11 @@ export class CardapioController {
     type: CardapioResponseDto,
   })
   @ApiResponse({ status: 404, description: 'Item não encontrado' })
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Cardapio> {
-    return this.cardapioService.findOne(id);
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<Cardapio> {
+    return this.cardapioService.findOne(id, restauranteId);
   }
 
   @Post()
@@ -73,8 +82,11 @@ export class CardapioController {
     description: 'Item criado com sucesso',
     type: CardapioResponseDto,
   })
-  async create(@Body() createCardapioDto: CreateCardapioDto): Promise<Cardapio> {
-    return this.cardapioService.create(createCardapioDto);
+  async create(
+    @Body() createCardapioDto: CreateCardapioDto,
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<Cardapio> {
+    return this.cardapioService.create(createCardapioDto, restauranteId);
   }
 
   @Patch(':id')
@@ -88,8 +100,9 @@ export class CardapioController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateCardapioDto: UpdateCardapioDto,
+    @CurrentUser('restauranteId') restauranteId: number,
   ): Promise<Cardapio> {
-    return this.cardapioService.update(id, updateCardapioDto);
+    return this.cardapioService.update(id, updateCardapioDto, restauranteId);
   }
 
   @Delete(':id')
@@ -97,8 +110,11 @@ export class CardapioController {
   @ApiOperation({ summary: 'Remover item do cardápio' })
   @ApiResponse({ status: 204, description: 'Item removido com sucesso' })
   @ApiResponse({ status: 404, description: 'Item não encontrado' })
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    return this.cardapioService.remove(id);
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<void> {
+    return this.cardapioService.remove(id, restauranteId);
   }
 
   @Patch(':id/toggle')
@@ -111,7 +127,8 @@ export class CardapioController {
   @ApiResponse({ status: 404, description: 'Item não encontrado' })
   async toggleDisponivel(
     @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('restauranteId') restauranteId: number,
   ): Promise<Cardapio> {
-    return this.cardapioService.toggleDisponivel(id);
+    return this.cardapioService.toggleDisponivel(id, restauranteId);
   }
 }

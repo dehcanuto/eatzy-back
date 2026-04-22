@@ -15,45 +15,58 @@ export class CardapioService {
     private cardapioRepository: Repository<Cardapio>,
   ) {}
 
-  async findAll(): Promise<Cardapio[]> {
+  async findAll(restauranteId: number): Promise<Cardapio[]> {
     return this.cardapioRepository.find({
+      where: { restauranteId },
       order: { nome: 'ASC' },
     });
   }
 
-  async findAllDisponiveis(): Promise<Cardapio[]> {
+  async findAllDisponiveis(restauranteId: number): Promise<Cardapio[]> {
     return this.cardapioRepository.find({
-      where: { disponivel: true },
+      where: { disponivel: true, restauranteId },
       order: { nome: 'ASC' },
     });
   }
 
-  async findOne(id: number): Promise<Cardapio> {
-    const item = await this.cardapioRepository.findOne({ where: { id } });
+  async findOne(id: number, restauranteId: number): Promise<Cardapio> {
+    const item = await this.cardapioRepository.findOne({
+      where: { id, restauranteId },
+    });
     if (!item) {
       throw new NotFoundException('Item do cardápio não encontrado');
     }
     return item;
   }
 
-  async create(createCardapioDto: CreateCardapioDto): Promise<Cardapio> {
-    const item = this.cardapioRepository.create(createCardapioDto);
+  async create(
+    createCardapioDto: CreateCardapioDto,
+    restauranteId: number,
+  ): Promise<Cardapio> {
+    const item = this.cardapioRepository.create({
+      ...createCardapioDto,
+      restauranteId,
+    });
     return this.cardapioRepository.save(item);
   }
 
-  async update(id: number, updateCardapioDto: UpdateCardapioDto): Promise<Cardapio> {
-    const item = await this.findOne(id);
-    await this.cardapioRepository.update(id, updateCardapioDto);
-    return this.findOne(id);
+  async update(
+    id: number,
+    updateCardapioDto: UpdateCardapioDto,
+    restauranteId: number,
+  ): Promise<Cardapio> {
+    const item = await this.findOne(id, restauranteId);
+    await this.cardapioRepository.update({ id, restauranteId }, updateCardapioDto);
+    return this.findOne(id, restauranteId);
   }
 
-  async remove(id: number): Promise<void> {
-    const item = await this.findOne(id);
+  async remove(id: number, restauranteId: number): Promise<void> {
+    const item = await this.findOne(id, restauranteId);
     await this.cardapioRepository.remove(item);
   }
 
-  async toggleDisponivel(id: number): Promise<Cardapio> {
-    const item = await this.findOne(id);
+  async toggleDisponivel(id: number, restauranteId: number): Promise<Cardapio> {
+    const item = await this.findOne(id, restauranteId);
     item.disponivel = !item.disponivel;
     return this.cardapioRepository.save(item);
   }
