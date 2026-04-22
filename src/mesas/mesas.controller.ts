@@ -19,6 +19,8 @@ import {
 } from '@nestjs/swagger';
 import { MesasService } from './mesas.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { TenantGuard } from '../auth/guards/tenant.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CreateMesaDto } from './dto/create-mesa.dto';
 import { UpdateMesaDto } from './dto/update-mesa.dto';
 import { MesaResponseDto } from './dto/mesa-response.dto';
@@ -27,7 +29,7 @@ import { EstatisticasMesas } from './mesas.service';
 
 @ApiTags('mesas')
 @Controller('mesas')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 @ApiBearerAuth()
 export class MesasController {
   constructor(private readonly mesasService: MesasService) {}
@@ -39,8 +41,10 @@ export class MesasController {
     description: 'Lista de mesas retornada com sucesso',
     type: [MesaResponseDto],
   })
-  async findAll(): Promise<Mesa[]> {
-    return this.mesasService.findAll();
+  async findAll(
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<Mesa[]> {
+    return this.mesasService.findAll(restauranteId);
   }
 
   @Get('estatisticas')
@@ -49,8 +53,10 @@ export class MesasController {
     status: 200,
     description: 'Estatísticas retornadas com sucesso',
   })
-  async getEstatisticas(): Promise<EstatisticasMesas> {
-    return this.mesasService.getEstatisticas();
+  async getEstatisticas(
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<EstatisticasMesas> {
+    return this.mesasService.getEstatisticas(restauranteId);
   }
 
   @Get(':id')
@@ -61,8 +67,11 @@ export class MesasController {
     type: MesaResponseDto,
   })
   @ApiResponse({ status: 404, description: 'Mesa não encontrada' })
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Mesa> {
-    return this.mesasService.findOne(id);
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<Mesa> {
+    return this.mesasService.findOne(id, restauranteId);
   }
 
   @Post()
@@ -74,8 +83,11 @@ export class MesasController {
     type: MesaResponseDto,
   })
   @ApiResponse({ status: 409, description: 'Mesa já existe' })
-  async create(@Body() createMesaDto: CreateMesaDto): Promise<Mesa> {
-    return this.mesasService.create(createMesaDto);
+  async create(
+    @Body() createMesaDto: CreateMesaDto,
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<Mesa> {
+    return this.mesasService.create(createMesaDto, restauranteId);
   }
 
   @Patch(':id')
@@ -90,8 +102,9 @@ export class MesasController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateMesaDto: UpdateMesaDto,
+    @CurrentUser('restauranteId') restauranteId: number,
   ): Promise<Mesa> {
-    return this.mesasService.update(id, updateMesaDto);
+    return this.mesasService.update(id, updateMesaDto, restauranteId);
   }
 
   @Delete(':id')
@@ -99,7 +112,10 @@ export class MesasController {
   @ApiOperation({ summary: 'Remover mesa' })
   @ApiResponse({ status: 204, description: 'Mesa removida com sucesso' })
   @ApiResponse({ status: 404, description: 'Mesa não encontrada' })
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    return this.mesasService.remove(id);
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<void> {
+    return this.mesasService.remove(id, restauranteId);
   }
 }

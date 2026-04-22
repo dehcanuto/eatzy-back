@@ -25,55 +25,68 @@ export class MesasService {
     private mesasRepository: Repository<Mesa>,
   ) {}
 
-  async findAll(): Promise<Mesa[]> {
+  async findAll(restauranteId: number): Promise<Mesa[]> {
     return this.mesasRepository.find({
+      where: { restauranteId },
       order: { numero: 'ASC' },
     });
   }
 
-  async findOne(id: number): Promise<Mesa> {
-    const mesa = await this.mesasRepository.findOne({ where: { id } });
+  async findOne(id: number, restauranteId: number): Promise<Mesa> {
+    const mesa = await this.mesasRepository.findOne({
+      where: { id, restauranteId },
+    });
     if (!mesa) {
       throw new NotFoundException('Mesa não encontrada');
     }
     return mesa;
   }
 
-  async create(createMesaDto: CreateMesaDto): Promise<Mesa> {
+  async create(
+    createMesaDto: CreateMesaDto,
+    restauranteId: number,
+  ): Promise<Mesa> {
     const existing = await this.mesasRepository.findOne({
-      where: { numero: createMesaDto.numero },
+      where: { numero: createMesaDto.numero, restauranteId },
     });
     if (existing) {
       throw new ConflictException('Mesa com este número já existe');
     }
 
-    const mesa = this.mesasRepository.create(createMesaDto);
+    const mesa = this.mesasRepository.create({
+      ...createMesaDto,
+      restauranteId,
+    });
     return this.mesasRepository.save(mesa);
   }
 
-  async update(id: number, updateMesaDto: UpdateMesaDto): Promise<Mesa> {
-    const mesa = await this.findOne(id);
+  async update(
+    id: number,
+    updateMesaDto: UpdateMesaDto,
+    restauranteId: number,
+  ): Promise<Mesa> {
+    const mesa = await this.findOne(id, restauranteId);
 
     if (updateMesaDto.numero && updateMesaDto.numero !== mesa.numero) {
       const existing = await this.mesasRepository.findOne({
-        where: { numero: updateMesaDto.numero },
+        where: { numero: updateMesaDto.numero, restauranteId },
       });
       if (existing) {
         throw new ConflictException('Mesa com este número já existe');
       }
     }
 
-    await this.mesasRepository.update(id, updateMesaDto);
-    return this.findOne(id);
+    await this.mesasRepository.update({ id, restauranteId }, updateMesaDto);
+    return this.findOne(id, restauranteId);
   }
 
-  async remove(id: number): Promise<void> {
-    const mesa = await this.findOne(id);
+  async remove(id: number, restauranteId: number): Promise<void> {
+    const mesa = await this.findOne(id, restauranteId);
     await this.mesasRepository.remove(mesa);
   }
 
-  async getEstatisticas(): Promise<EstatisticasMesas> {
-    const mesas = await this.mesasRepository.find();
+  async getEstatisticas(restauranteId: number): Promise<EstatisticasMesas> {
+    const mesas = await this.mesasRepository.find({ where: { restauranteId } });
 
     const total = mesas.length;
     const disponiveis = mesas.filter((m) => m.status === 'disponivel').length;
