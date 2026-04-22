@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { RestaurantesModule } from './restaurantes/restaurantes.module';
 import { EstoqueModule } from './estoque/estoque.module';
 import { MesasModule } from './mesas/mesas.module';
 import { FinanceiroModule } from './financeiro/financeiro.module';
@@ -29,6 +30,7 @@ import { CardapioModule } from './cardapio/cardapio.module';
     }),
     AuthModule,
     UsersModule,
+    RestaurantesModule,
     EstoqueModule,
     MesasModule,
     FinanceiroModule,
