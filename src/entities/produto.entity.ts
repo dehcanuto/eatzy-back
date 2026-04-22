@@ -4,7 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Restaurante } from './restaurante.entity';
 
 export type ProdutoStatus = 'normal' | 'baixo' | 'critico';
 
@@ -48,6 +51,13 @@ export class Produto {
     default: 'normal',
   })
   status: ProdutoStatus;
+
+  @Column({ name: 'restaurante_id' })
+  restauranteId: number;
+
+  @ManyToOne(() => Restaurante)
+  @JoinColumn({ name: 'restaurante_id' })
+  restaurante: Restaurante;
 
   @CreateDateColumn()
   createdAt: Date;

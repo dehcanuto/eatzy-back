@@ -4,7 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Restaurante } from './restaurante.entity';
 
 export type ContaPagarStatus = 'pendente' | 'pago' | 'atrasado';
 
@@ -43,6 +46,13 @@ export class ContaPagar {
 
   @Column({ type: 'text', nullable: true })
   observacao?: string;
+
+  @Column({ name: 'restaurante_id' })
+  restauranteId: number;
+
+  @ManyToOne(() => Restaurante)
+  @JoinColumn({ name: 'restaurante_id' })
+  restaurante: Restaurante;
 
   @CreateDateColumn()
   createdAt: Date;

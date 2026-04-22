@@ -4,7 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Restaurante } from './restaurante.entity';
 
 @Entity('cardapio')
 export class Cardapio {
@@ -31,6 +34,13 @@ export class Cardapio {
 
   @Column({ nullable: true, name: 'tempo_preparo' })
   tempoPreparo: number;
+
+  @Column({ name: 'restaurante_id' })
+  restauranteId: number;
+
+  @ManyToOne(() => Restaurante)
+  @JoinColumn({ name: 'restaurante_id' })
+  restaurante: Restaurante;
 
   @CreateDateColumn()
   createdAt: Date;

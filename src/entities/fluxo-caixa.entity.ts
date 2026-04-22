@@ -4,7 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Restaurante } from './restaurante.entity';
 
 export type FluxoCaixaTipo = 'entrada' | 'saida';
 
@@ -36,6 +39,13 @@ export class FluxoCaixa {
 
   @Column({ nullable: true })
   origem?: string;
+
+  @Column({ name: 'restaurante_id' })
+  restauranteId: number;
+
+  @ManyToOne(() => Restaurante)
+  @JoinColumn({ name: 'restaurante_id' })
+  restaurante: Restaurante;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -4,7 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Restaurante } from './restaurante.entity';
 
 export type MesaStatus = 'disponivel' | 'ocupada' | 'reservada' | 'limpeza';
 
@@ -34,6 +37,13 @@ export class Mesa {
 
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   valor?: number;
+
+  @Column({ name: 'restaurante_id' })
+  restauranteId: number;
+
+  @ManyToOne(() => Restaurante)
+  @JoinColumn({ name: 'restaurante_id' })
+  restaurante: Restaurante;
 
   @CreateDateColumn()
   createdAt: Date;
