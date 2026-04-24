@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { RestaurantesModule } from './restaurantes/restaurantes.module';
 import { EstoqueModule } from './estoque/estoque.module';
 import { MesasModule } from './mesas/mesas.module';
+import { ComandasModule } from './comandas/comandas.module';
 import { FinanceiroModule } from './financeiro/financeiro.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { CardapioModule } from './cardapio/cardapio.module';
@@ -33,6 +34,7 @@ import { CardapioModule } from './cardapio/cardapio.module';
     RestaurantesModule,
     EstoqueModule,
     MesasModule,
+    ComandasModule,
     FinanceiroModule,
     DashboardModule,
     CardapioModule,

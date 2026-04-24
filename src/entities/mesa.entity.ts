@@ -6,8 +6,10 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  BeforeInsert,
 } from 'typeorm';
 import { Restaurante } from './restaurante.entity';
+import { v4 as uuidv4 } from 'uuid';
 
 export type MesaStatus = 'disponivel' | 'ocupada' | 'reservada' | 'limpeza';
 
@@ -15,6 +17,9 @@ export type MesaStatus = 'disponivel' | 'ocupada' | 'reservada' | 'limpeza';
 export class Mesa {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ unique: true, default: () => 'UUID()' })
+  uuid: string;
 
   @Column({ unique: true })
   numero: string;
@@ -50,4 +55,11 @@ export class Mesa {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @BeforeInsert()
+  generateUuid() {
+    if (!this.uuid) {
+      this.uuid = uuidv4();
+    }
+  }
 }

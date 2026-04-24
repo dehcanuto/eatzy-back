@@ -5,6 +5,9 @@ export class MesaResponseDto {
   id: number;
 
   @ApiProperty()
+  uuid: string;
+
+  @ApiProperty()
   numero: string;
 
   @ApiProperty()

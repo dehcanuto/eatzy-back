@@ -70,4 +70,17 @@ export class CardapioService {
     item.disponivel = !item.disponivel;
     return this.cardapioRepository.save(item);
   }
+
+  async findAllCategorias(restauranteId: number): Promise<string[]> {
+    const result = await this.cardapioRepository
+      .createQueryBuilder('cardapio')
+      .select('DISTINCT cardapio.categoria', 'categoria')
+      .where('cardapio.restaurante_id = :restauranteId', { restauranteId })
+      .andWhere('cardapio.categoria IS NOT NULL')
+      .andWhere('cardapio.categoria != :empty', { empty: '' })
+      .orderBy('cardapio.categoria', 'ASC')
+      .getRawMany();
+
+    return result.map((r: { categoria: string }) => r.categoria);
+  }
 }

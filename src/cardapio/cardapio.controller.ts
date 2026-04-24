@@ -20,7 +20,7 @@ import {
 import { CardapioService } from './cardapio.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../auth/guards/tenant.guard';
-import { CurrentUser, CurrentUserData } from '../auth/decorators/current-user.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CreateCardapioDto } from './dto/create-cardapio.dto';
 import { UpdateCardapioDto } from './dto/update-cardapio.dto';
 import { CardapioResponseDto } from './dto/cardapio-response.dto';
@@ -130,5 +130,18 @@ export class CardapioController {
     @CurrentUser('restauranteId') restauranteId: number,
   ): Promise<Cardapio> {
     return this.cardapioService.toggleDisponivel(id, restauranteId);
+  }
+
+  @Get('categorias')
+  @ApiOperation({ summary: 'Listar todas as categorias únicas' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de categorias retornada com sucesso',
+    type: [String],
+  })
+  async findAllCategorias(
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<string[]> {
+    return this.cardapioService.findAllCategorias(restauranteId);
   }
 }
