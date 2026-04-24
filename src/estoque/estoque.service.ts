@@ -98,12 +98,23 @@ export class EstoqueService {
       createProdutoDto.quantidadeMinima,
     );
 
-    const produto = this.produtosRepository.create({
+    const produtoData = {
       ...createProdutoDto,
       restauranteId,
-      dataUltimaEntrada: new Date(createProdutoDto.dataUltimaEntrada),
       status,
-    });
+      // Converter strings de data para objetos Date
+      dataEntrada: createProdutoDto.dataEntrada
+        ? new Date(createProdutoDto.dataEntrada)
+        : undefined,
+      dataUltimaEntrada: createProdutoDto.dataUltimaEntrada
+        ? new Date(createProdutoDto.dataUltimaEntrada)
+        : undefined,
+      dataValidade: createProdutoDto.dataValidade
+        ? new Date(createProdutoDto.dataValidade)
+        : undefined,
+    };
+
+    const produto = this.produtosRepository.create(produtoData);
 
     return this.produtosRepository.save(produto);
   }
@@ -135,17 +146,28 @@ export class EstoqueService {
       categoria: updateProdutoDto.categoria,
       quantidade: updateProdutoDto.quantidade,
       quantidadeMinima: updateProdutoDto.quantidadeMinima,
+      quantidadeMaxima: updateProdutoDto.quantidadeMaxima,
       unidade: updateProdutoDto.unidade,
       preco: updateProdutoDto.preco,
+      custoUnitario: updateProdutoDto.custoUnitario,
       fornecedor: updateProdutoDto.fornecedor,
+      codigoFornecedor: updateProdutoDto.codigoFornecedor,
+      dataValidade: updateProdutoDto.dataValidade
+        ? new Date(updateProdutoDto.dataValidade)
+        : undefined,
+      localArmazenamento: updateProdutoDto.localArmazenamento,
+      temperaturaIdeal: updateProdutoDto.temperaturaIdeal,
+      dataEntrada: updateProdutoDto.dataEntrada
+        ? new Date(updateProdutoDto.dataEntrada)
+        : undefined,
+      dataUltimaEntrada: updateProdutoDto.dataUltimaEntrada
+        ? new Date(updateProdutoDto.dataUltimaEntrada)
+        : undefined,
+      numeroLoteNota: updateProdutoDto.numeroLoteNota,
+      usuarioRegistroId: updateProdutoDto.usuarioRegistroId,
+      ativo: updateProdutoDto.ativo,
       status,
     };
-
-    if (updateProdutoDto.dataUltimaEntrada) {
-      updateData.dataUltimaEntrada = new Date(
-        updateProdutoDto.dataUltimaEntrada,
-      );
-    }
 
     await this.produtosRepository.update({ id, restauranteId }, updateData);
     return this.findOne(id, restauranteId);

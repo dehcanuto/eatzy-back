@@ -1,8 +1,22 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, IsEnum, IsDateString, Min } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsEnum,
+  IsDateString,
+  IsOptional,
+  IsBoolean,
+  Min,
+} from 'class-validator';
 import type { ProdutoStatus } from '../../entities/produto.entity';
 
 export class CreateProdutoDto {
+  // Identificação
+  @ApiProperty({ example: 'TOM-001', required: false })
+  @IsString()
+  @IsOptional()
+  codigoInterno?: string;
+
   @ApiProperty({ example: 'Tomate' })
   @IsString()
   nome: string;
@@ -11,34 +25,98 @@ export class CreateProdutoDto {
   @IsString()
   categoria: string;
 
+  @ApiProperty({ example: 'kg' })
+  @IsString()
+  unidade: string;
+
+  // Quantidades
   @ApiProperty({ example: 25 })
   @IsNumber()
   @Min(0)
   quantidade: number;
 
-  @ApiProperty({ example: 30 })
+  @ApiProperty({ example: 5 })
   @IsNumber()
   @Min(0)
   quantidadeMinima: number;
 
-  @ApiProperty({ example: 'kg' })
-  @IsString()
-  unidade: string;
-
-  @ApiProperty({ example: 4.5 })
+  @ApiProperty({ example: 100, required: false })
   @IsNumber()
+  @IsOptional()
   @Min(0)
-  preco: number;
+  quantidadeMaxima?: number;
+
+  // Custo e fornecedor
+  @ApiProperty({ example: 3.5, required: false })
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  custoUnitario?: number;
 
   @ApiProperty({ example: 'Sabor Verde' })
   @IsString()
   fornecedor: string;
 
-  @ApiProperty({ example: '2024-03-25' })
-  @IsDateString()
-  dataUltimaEntrada: string;
+  @ApiProperty({ example: 'COD-12345', required: false })
+  @IsString()
+  @IsOptional()
+  codigoFornecedor?: string;
 
-  @ApiProperty({ example: 'normal', enum: ['normal', 'baixo', 'critico'] })
+  // Validade e armazenamento
+  @ApiProperty({ example: '2024-12-31', required: false })
+  @IsDateString()
+  @IsOptional()
+  dataValidade?: string;
+
+  @ApiProperty({ example: 'Geladeira A', required: false })
+  @IsString()
+  @IsOptional()
+  localArmazenamento?: string;
+
+  @ApiProperty({ example: '4°C', required: false })
+  @IsString()
+  @IsOptional()
+  temperaturaIdeal?: string;
+
+  // Rastreabilidade
+  @ApiProperty({ example: '2024-03-25', required: false })
+  @IsDateString()
+  @IsOptional()
+  dataEntrada?: string;
+
+  @ApiProperty({ example: '2024-03-25', required: false })
+  @IsDateString()
+  @IsOptional()
+  dataUltimaEntrada?: string;
+
+  @ApiProperty({ example: 'NF-12345', required: false })
+  @IsString()
+  @IsOptional()
+  numeroLoteNota?: string;
+
+  @ApiProperty({ example: 1, required: false })
+  @IsNumber()
+  @IsOptional()
+  usuarioRegistroId?: number;
+
+  // Status
+  @ApiProperty({ example: true, required: false })
+  @IsBoolean()
+  @IsOptional()
+  ativo?: boolean;
+
+  @ApiProperty({
+    example: 'normal',
+    enum: ['normal', 'baixo', 'critico'],
+    required: false,
+  })
   @IsEnum(['normal', 'baixo', 'critico'])
-  status: ProdutoStatus;
+  @IsOptional()
+  status?: ProdutoStatus;
+
+  @ApiProperty({ example: 4.5, required: false })
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  preco?: number;
 }
