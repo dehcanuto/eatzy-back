@@ -13,8 +13,10 @@ import {
   VendaRecente,
   ProdutoCritico,
   ContaAtrasada,
+  VendaDia,
 } from './dashboard.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('dashboard')
 @Controller('dashboard')
@@ -29,8 +31,10 @@ export class DashboardController {
     status: 200,
     description: 'Estatísticas das mesas retornadas com sucesso',
   })
-  async getEstatisticasMesas(): Promise<EstatisticaMesas> {
-    return this.dashboardService.getEstatisticasMesas();
+  async getEstatisticasMesas(
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<EstatisticaMesas> {
+    return this.dashboardService.getEstatisticasMesas(restauranteId);
   }
 
   @Get('estoque')
@@ -39,8 +43,10 @@ export class DashboardController {
     status: 200,
     description: 'Estatísticas do estoque retornadas com sucesso',
   })
-  async getEstatisticasEstoque(): Promise<EstatisticaEstoque> {
-    return this.dashboardService.getEstatisticasEstoque();
+  async getEstatisticasEstoque(
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<EstatisticaEstoque> {
+    return this.dashboardService.getEstatisticasEstoque(restauranteId);
   }
 
   @Get('financeiro')
@@ -49,8 +55,10 @@ export class DashboardController {
     status: 200,
     description: 'Estatísticas financeiras retornadas com sucesso',
   })
-  async getEstatisticasFinanceiro(): Promise<EstatisticaFinanceiro> {
-    return this.dashboardService.getEstatisticasFinanceiro();
+  async getEstatisticasFinanceiro(
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<EstatisticaFinanceiro> {
+    return this.dashboardService.getEstatisticasFinanceiro(restauranteId);
   }
 
   @Get('vendas-recentes')
@@ -69,8 +77,10 @@ export class DashboardController {
     status: 200,
     description: 'Produtos críticos retornados com sucesso',
   })
-  async getProdutosCriticos(): Promise<ProdutoCritico[]> {
-    return this.dashboardService.getProdutosCriticos();
+  async getProdutosCriticos(
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<ProdutoCritico[]> {
+    return this.dashboardService.getProdutosCriticos(restauranteId);
   }
 
   @Get('contas-atrasadas')
@@ -79,7 +89,19 @@ export class DashboardController {
     status: 200,
     description: 'Contas atrasadas retornadas com sucesso',
   })
-  async getContasAtrasadas(): Promise<ContaAtrasada[]> {
-    return this.dashboardService.getContasAtrasadas();
+  async getContasAtrasadas(
+    @CurrentUser('restauranteId') restauranteId: number,
+  ): Promise<ContaAtrasada[]> {
+    return this.dashboardService.getContasAtrasadas(restauranteId);
+  }
+
+  @Get('vendas-ultimos-7-dias')
+  @ApiOperation({ summary: 'Obter vendas dos últimos 7 dias' })
+  @ApiResponse({
+    status: 200,
+    description: 'Vendas dos últimos 7 dias retornadas com sucesso',
+  })
+  async getVendasUltimos7Dias(): Promise<VendaDia[]> {
+    return this.dashboardService.getVendasUltimos7Dias();
   }
 }

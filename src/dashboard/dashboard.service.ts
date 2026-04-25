@@ -63,6 +63,12 @@ export interface ContaAtrasada {
   diasAtraso: number;
 }
 
+export interface VendaDia {
+  data: string;
+  valor: number;
+  quantidade: number;
+}
+
 @Injectable()
 export class DashboardService {
   constructor(
@@ -76,8 +82,10 @@ export class DashboardService {
     private fluxoCaixaRepository: Repository<FluxoCaixa>,
   ) {}
 
-  async getEstatisticasMesas(): Promise<EstatisticaMesas> {
-    const mesas = await this.mesasRepository.find();
+  async getEstatisticasMesas(restauranteId: number): Promise<EstatisticaMesas> {
+    const mesas = await this.mesasRepository.find({
+      where: { restauranteId },
+    });
 
     const total = mesas.length;
     const disponiveis = mesas.filter((m) => m.status === 'disponivel').length;
@@ -99,8 +107,12 @@ export class DashboardService {
     };
   }
 
-  async getEstatisticasEstoque(): Promise<EstatisticaEstoque> {
-    const produtos = await this.produtosRepository.find();
+  async getEstatisticasEstoque(
+    restauranteId: number,
+  ): Promise<EstatisticaEstoque> {
+    const produtos = await this.produtosRepository.find({
+      where: { restauranteId },
+    });
 
     const total = produtos.length;
     const normal = produtos.filter((p) => p.status === 'normal').length;
@@ -125,9 +137,15 @@ export class DashboardService {
     };
   }
 
-  async getEstatisticasFinanceiro(): Promise<EstatisticaFinanceiro> {
-    const contas = await this.contasPagarRepository.find();
-    const fluxos = await this.fluxoCaixaRepository.find();
+  async getEstatisticasFinanceiro(
+    restauranteId: number,
+  ): Promise<EstatisticaFinanceiro> {
+    const contas = await this.contasPagarRepository.find({
+      where: { restauranteId },
+    });
+    const fluxos = await this.fluxoCaixaRepository.find({
+      where: { restauranteId },
+    });
 
     const totalContas = contas.length;
     const contasPagas = contas.filter((c) => c.status === 'pago').length;
@@ -162,9 +180,9 @@ export class DashboardService {
     };
   }
 
-  async getProdutosCriticos(): Promise<ProdutoCritico[]> {
+  async getProdutosCriticos(restauranteId: number): Promise<ProdutoCritico[]> {
     const produtos = await this.produtosRepository.find({
-      where: { status: 'critico' },
+      where: { status: 'critico', restauranteId },
       order: { quantidade: 'ASC' },
     });
 
@@ -178,7 +196,7 @@ export class DashboardService {
     }));
   }
 
-  async getContasAtrasadas(): Promise<ContaAtrasada[]> {
+  async getContasAtrasadas(restauranteId: number): Promise<ContaAtrasada[]> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -186,6 +204,7 @@ export class DashboardService {
       where: {
         status: 'atrasado',
         dataVencimento: LessThan(today),
+        restauranteId,
       },
       order: { dataVencimento: 'ASC' },
     });
@@ -256,5 +275,28 @@ export class DashboardService {
         itens: 6,
       },
     ];
+  }
+
+  // Mock de vendas dos últimos 7 dias (será implementado com módulo de vendas futuramente)
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async getVendasUltimos7Dias(): Promise<VendaDia[]> {
+    const hoje = new Date();
+    const dados: VendaDia[] = [];
+
+    // Valores simulados para os últimos 7 dias (similar ao gráfico da imagem)
+    const valores = [1800, 4500, 3200, 5800, 3500, 8900, 10200];
+    const quantidades = [12, 28, 18, 35, 22, 52, 58];
+
+    for (let i = 6; i >= 0; i--) {
+      const data = new Date(hoje);
+      data.setDate(hoje.getDate() - i);
+      dados.push({
+        data: data.toISOString().split('T')[0],
+        valor: valores[6 - i],
+        quantidade: quantidades[6 - i],
+      });
+    }
+
+    return dados;
   }
 }
